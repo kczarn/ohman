@@ -11,13 +11,13 @@ import matplotlib.cm as cm
 
 #gray = plt.get_cmap("gray")
 gray_r = plt.get_cmap("gray_r")
-jet = plt.get_cmap("jet")
 seismic = plt.get_cmap("seismic")  #"rainbow" "jet" "bwr" "coolwarm" "seismic")
 
 random.seed(12345678)
 
 def rnoise(rn, N):
     return [ 1.0 + 2.0 * rn * (random.random() - 0.5) for i in range(N) ]
+
 
 def show_efuns(ax, ef1, ef2, W, D):
     N, M = W.shape
