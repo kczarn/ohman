@@ -70,7 +70,8 @@ def eigenfunctions(L):
     N, M = L.shape ; assert N == M
     D = np.zeros((N, N))
     for i in range(N): D[i,i] = L[i,i]
-    evals, efuns = linalg.eigh(L)  #, D)
+    #evals, efuns = linalg.eigh(L)
+    evals, efuns = linalg.eigh(L, D)
     return evals, efuns
     
 

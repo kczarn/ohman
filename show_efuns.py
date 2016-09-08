@@ -4,7 +4,7 @@
 #
 
 import random
-from math import sqrt
+from math import pi, sqrt, cos, sin, acos, asin
 from matplotlib import pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cm
@@ -66,13 +66,39 @@ def show_on_truth(ax, f1, efuns, truth, W, rn=None):
     ef1 = efuns[:,f1]
     ef1cran = max(abs(efuns.min()), abs(efuns.max()))
     ef1norm = colors.Normalize(vmin=-ef1cran, vmax=ef1cran)
-    ax.scatter(truthx, truthy, c=map(ef1color(ef1norm), ef1), s=200)
+    ax.scatter(truthx, truthy, c=map(efcolor(ef1norm), ef1), s=200)
     for i in range(N):
         for j in range(i+1, N):
             if W[i,j] > 0.0:
                 xs, ys = zip(truth_[i], truth_[j])
                 ax.plot(xs, ys, lw=1.4, c=weightcolor(W[i,j]))
 
+
+def phase(*args):
+    if len(args) == 1: x, y = args[0]
+    else: x, y = args
+    r = sqrt(x**2 + y**2)
+    if x >= abs(y): res = asin(y/r)
+    elif y >= abs(x): res = acos(x/r)
+    elif x <= -abs(y): res = pi - asin(y/r)
+    elif y <= -abs(x): res = 2*pi - acos(x/r)
+    if res < 0: res += 2 * pi
+    return res
+
+# test for the phase() function
+if False:
+    for phi_i in range(0,36):  # every 10 degrees
+        phi = 2 * pi * phi_i / 36
+        print phi_i * 10, phi, phase(cos(phi), sin(phi))
+                     
+                
+def show_phase_estimate(ax, f1, f2, efuns, truth):
+    tru_phase = map(phase, truth)
+    est_phase = map(phase, zip(efuns[:,f1],efuns[:,f2]))
+    tru_est_sorted = sorted(zip(tru_phase, est_phase), key=(lambda (t,e):t))
+    tru_sorted, est_sorted = zip(*tru_est_sorted)
+    ax.plot(tru_sorted, est_sorted)
+    
 
 if __name__ == "__main__":
     import sys, argparse, os
@@ -82,6 +108,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--sanity", action="store_true",
                         help="run some sanity checks on eigenvalues and eigenfunctions")
+    parser.add_argument("--phase-estimate", action="store_true",
+                        help="plot the phase estimate")
     parser.add_argument("--truth", action="store_true",
                         help="one eigenfunction on top of truth")
     parser.add_argument("--rnoise", type=float, default=None,
@@ -103,11 +131,14 @@ if __name__ == "__main__":
     W = np.loadtxt(path.join(exp_dir, "W"))
     D = np.loadtxt(path.join(exp_dir, "D"))
     
-    if not args.truth:
+    if args.truth:
+        fig, ax = plt.subplots(1, 1)
+        show_on_truth(ax, args.f1, efuns, truth, W, rn=args.rnoise)
+    elif args.phase_estimate:
+        fig, ax = plt.subplots(1, 1)
+        show_phase_estimate(ax, args.f1, args.f2, efuns, truth)
+    else:
         fig, ax = plt.subplots(1, 1)
         show_efuns(ax, args.f1, args.f2, efuns, truth, W, D)
         ax.set_axis_bgcolor("lightgreen")
-    else:
-        fig, ax = plt.subplots(1, 1)
-        show_on_truth(ax, args.f1, efuns, truth, W, rn=args.rnoise)
     plt.show()
